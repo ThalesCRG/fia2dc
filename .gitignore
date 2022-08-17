@@ -3,5 +3,4 @@
 .env
 /files
 .start.sh
-/src/files
-/src/Downloader/files
+/config

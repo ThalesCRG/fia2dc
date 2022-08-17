@@ -12,8 +12,13 @@
   "dependencies": {
     "@types/node": "^18.7.6",
     "axios": "^0.27.2",
+    "discord.js": "^14.2.0",
     "dotenv": "^16.0.1",
     "download": "^8.0.0",
     "puppeteer": "^16.1.1"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "pdf-to-png-converter": "^2.3.0"
   }
 }
