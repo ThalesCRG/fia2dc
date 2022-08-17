@@ -1,56 +1,26 @@
-import axios from "axios";
-import { Scraper } from "./Scraper";
-import { Downloader } from "./Downloader";
+import { EVENT_TYPES as SCRAPER_EVENT_TYPES, Scraper } from "./Scraper";
+import { Downloader, EVENT_TYPES } from "./Downloader";
+import { DiscordWebhook } from "./Discord";
+import { Logger } from "./Logger";
 require("dotenv").config();
 
-const scraper = new Scraper();
-const downloader = new Downloader();
+const logger = new Logger();
 
-setInterval(() => {
-  scraper.scrapeSite(process.env.FIA_DOCS_URI as string);
-}, 10000);
+async function start() {
+  const scraper = new Scraper();
+  const downloader = new Downloader();
+  const webhookClient = new DiscordWebhook(process.env.WEBHOOK_URI as string);
 
-scraper.on("newPDFLink", async (link) => {
-  await downloader.downloadFile(link);
-});
+  setInterval(() => {
+    scraper.scrapeSite(process.env.FIA_DOCS_URI as string);
+  }, 10000);
+  scraper.on(SCRAPER_EVENT_TYPES.NEW_PDF_LINK, async (link) => {
+    await downloader.downloadFile(link);
+  });
 
-downloader.downloadAll();
+  downloader.on(EVENT_TYPES.SAVED_FILE, async (file) => {
+    await webhookClient.releaseAFile(file);
+  });
+}
 
-// async function testWebhook(file: string) {
-//   try {
-//     const response = await axios.post(
-//       process.env.WEBHOOK_URI as string,
-//       {
-//         content: "New Fia Document!",
-//         // embeds: [
-//         //   {
-//         //     title: "Discord Webhook Example",
-//         //     color: 5174599,
-//         //     footer: {
-//         //       text: `📅 `,
-//         //     },
-//         //     fields: [
-//         //       {
-//         //         name: "Field Name",
-//         //         value: "Field Value",
-//         //       },
-//         //     ],
-//         //   },
-//         // ],
-//         attachments: [
-//           {
-//             id: 0,
-//             description: "New Fia Document",
-//             filename: file,
-//           },
-//         ],
-//       },
-//       { headers: { "Content-Type": "application/json" } }
-//     );
-//     console.log(`res: [${response}]`);
-//   } catch (errors) {
-//     console.log(errors);
-//   }
-// }
-
-// // testWebhook("./49564461766_e230dc4a51_k.jpg");
+start();
