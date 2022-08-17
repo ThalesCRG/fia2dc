@@ -1,0 +1,7 @@
+/dist
+/node_modules
+.env
+/files
+.start.sh
+/src/files
+/src/Downloader/files
