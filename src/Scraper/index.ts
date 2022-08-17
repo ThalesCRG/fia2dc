@@ -38,7 +38,10 @@ export class Scraper extends EventEmitter {
 
   async scrapeSite(url: string) {
     logger.log(LogTypes.SCRAPING_ON, url);
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox"],
+    });
     const page = await browser.newPage();
     await page.goto(url);
 
