@@ -1,9 +1,10 @@
-import puppeteer from "puppeteer";
+import { parse } from "node-html-parser";
 import fs from "fs/promises";
 import { EventEmitter } from "stream";
 import path from "path";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { Logger, LogTypes } from "../Logger";
+import axios from "axios";
 
 const logger = new Logger();
 
@@ -37,32 +38,45 @@ export class Scraper extends EventEmitter {
   }
 
   async scrapeSite(url: string) {
-    logger.log(LogTypes.SCRAPING_ON, url);
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox"],
-    });
-    const page = await browser.newPage();
-    await page.goto(url);
+    try {
+      var startTime = process.hrtime();
 
-    //this gives back an actual array, not a node list
-    const linkCollection = await page.$$eval("a", (links) => {
-      return links.map((link) => {
-        return link.href;
-      });
-    });
+      const response = await axios.get("https://www.fia.com/documents/");
 
-    const existingFiles = (await fs.readFile(LINK_FILE, "utf-8")).split("\n");
+      const stringdata = response.data as string;
 
-    for (const link of linkCollection) {
-      if (link.includes(".pdf")) {
+      const parsed = parse(stringdata);
+
+      const links = parsed.querySelectorAll("a");
+
+      const linkCollection = links
+        .filter((link) => link.rawAttributes.href.endsWith(".pdf"))
+        .map(
+          (link) => "https://www.fia.com" + encodeURI(link.rawAttributes.href)
+        );
+
+      const existingFiles = (await fs.readFile(LINK_FILE, "utf-8")).split("\n");
+
+      for (const link of linkCollection) {
         if (!existingFiles.find((file) => file === link)) {
           await fs.appendFile(LINK_FILE, link + "\n");
           this.emit(EVENT_TYPES.NEW_PDF_LINK, link);
         }
       }
+      var elapsedSeconds = process.hrtime(startTime);
+      logger.log(
+        LogTypes.SCRAPING_ON,
+        url +
+          ", took: " +
+          `${
+            Math.round(
+              (elapsedSeconds[0] + elapsedSeconds[1] / 1000000000) * 100
+            ) / 100
+          }` +
+          "s"
+      );
+    } catch (error) {
+      logger.log(LogTypes.ERROR_SCRAPING, error);
     }
-
-    await browser.close();
   }
 }

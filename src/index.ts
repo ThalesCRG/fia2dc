@@ -2,6 +2,7 @@ import { EVENT_TYPES as SCRAPER_EVENT_TYPES, Scraper } from "./Scraper";
 import { Downloader, EVENT_TYPES } from "./Downloader";
 import { DiscordWebhook } from "./Discord";
 import { Logger } from "./Logger";
+import { convertToPng } from "./Converter";
 require("dotenv").config();
 
 const logger = new Logger();
@@ -19,6 +20,7 @@ async function start() {
   });
 
   downloader.on(EVENT_TYPES.SAVED_FILE, async (file) => {
+    await convertToPng(file);
     await webhookClient.releaseAFile(file);
   });
 }
