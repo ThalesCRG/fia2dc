@@ -83,6 +83,7 @@ export class DiscordWebhook {
           },
         ],
       });
+      logger.log(LogTypes.DC_WEBHOOK_SEND, file);
     } catch (error) {
       logger.log(LogTypes.DC_WEBHOOK_ERROR, JSON.stringify(error));
     }
