@@ -32,7 +32,6 @@ export class DiscordWebhook {
     const pictures = this.findPictures(file).map((picture) =>
       path.join(IMAGE_PATH, picture)
     );
-    console.log(pictures);
     const result: Array<{ name: string; path: string }> = [];
 
     for (const file of pictures) {
