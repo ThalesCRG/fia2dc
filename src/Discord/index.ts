@@ -46,14 +46,14 @@ export class DiscordWebhook {
 
   async releaseAFile(file: string) {
     try {
-      logger.log(LogTypes.DC_WEBHOOK_SEND, file);
-
       const stats = statSync(file);
       const images = this.generateImageEmbeds(file);
 
-      await this.webhookClient.send({
+      const embedMessage = {
+        URL: `${HOME_URI + encodeURI(images[0].name)}`,
         embeds: [
           {
+            URL: `${HOME_URI + encodeURI(images[0].name)}`,
             title: "The FIA just released a new File",
             description:
               "The FIA has just released a new Document regarding Formula One. Let me just post it here..",
@@ -73,16 +73,42 @@ export class DiscordWebhook {
             image: { url: HOME_URI + encodeURI(images[0].name) },
           },
         ],
+      };
+      images.forEach((thisimage) => {
+        embedMessage.embeds.push({
+          URL: `${HOME_URI + encodeURI(images[0].name)}`,
+          title: "The FIA just released a new File",
+          description:
+            "The FIA has just released a new Document regarding Formula One. Let me just post it here..",
+          fields: [
+            {
+              name: "File name:",
+              value: file.split(path.sep).pop() ?? "not found",
+              inline: true,
+            },
+            {
+              name: "File size:",
+              value: "" + stats.size,
+              inline: true,
+            },
+          ],
+          timestamp: new Date(stats.birthtime).toISOString(),
+          image: { url: HOME_URI + encodeURI(thisimage.name) },
+        });
       });
 
-      await this.webhookClient.send({
+      await this.webhookClient.send(embedMessage);
+
+      const fileMessage = {
         files: [
           {
             attachment: file,
             name: file.split(path.sep).pop(),
           },
         ],
-      });
+      };
+
+      await this.webhookClient.send(fileMessage);
       logger.log(LogTypes.DC_WEBHOOK_SEND, file);
     } catch (error) {
       logger.log(LogTypes.DC_WEBHOOK_ERROR, JSON.stringify(error));

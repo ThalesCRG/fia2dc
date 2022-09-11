@@ -10,7 +10,9 @@ const logger = new Logger();
 async function start() {
   const scraper = new Scraper();
   const downloader = new Downloader();
-  const webhookClient = new DiscordWebhook(process.env.WEBHOOK_URI as string);
+  const webhookClients = [
+    new DiscordWebhook(process.env.WEBHOOK_URI as string),
+  ];
 
   setInterval(() => {
     scraper.scrapeSite(process.env.FIA_DOCS_URI as string);
@@ -21,7 +23,9 @@ async function start() {
 
   downloader.on(EVENT_TYPES.SAVED_FILE, async (file) => {
     await convertToPng(file);
-    await webhookClient.releaseAFile(file);
+    for (const webhookClient of webhookClients) {
+      await webhookClient.releaseAFile(file);
+    }
   });
 }
 
