@@ -16,7 +16,7 @@ async function start() {
 
   setInterval(() => {
     scraper.scrapeSite(process.env.FIA_DOCS_URI as string);
-  }, 10000);
+  }, 60000);
   scraper.on(SCRAPER_EVENT_TYPES.NEW_PDF_LINK, async (link) => {
     await downloader.downloadFile(link);
   });

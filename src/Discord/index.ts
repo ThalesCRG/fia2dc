@@ -7,7 +7,7 @@ import { Logger, LogTypes } from "../Logger";
 
 const logger = new Logger();
 
-const HOME_URI = "https://fia.rdc-racing.de/";
+const HOME_URI = "https://fia.accreports.de/";
 
 export class DiscordWebhook {
   webhookClient: WebhookClient;
